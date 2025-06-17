@@ -4,84 +4,222 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Resume - Elisha Hayer</title>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter&family=Roboto&family=Open+Sans&family=Lato&family=Montserrat&family=Poppins&family=Nunito&family=Raleway&family=Source+Sans+Pro&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/resume-style.css" />
+  <!-- Google Fonts: only load fonts actually used -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Inter&family=Roboto&display=swap" rel="stylesheet"> -->
+  <link rel="stylesheet" href="assets/css/resume-style2.css" />
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1><strong>ELISHA HAYER</strong></h1>
-      <!-- <p>-###-#### | email@gmail.com | City, XX</p> -->
+    <!-- Header / Name -->
+    <header class="resume-header">
+      <h1 class="name">ELISHA HAYER</h1>
+      <!-- If desired, contact info here -->
+      <!-- <p class="contact">+1 (###) ###-#### | email@example.com | Vancouver, BC</p> -->
     </header>
 
-    <section>
-      <h2>Technical Skills</h2>
-      <ul>
-        <strong>Cloud Platforms:</strong> Microsoft Azure</br>
-        <strong>Scripting & DevOps:</strong> Python, Bash, PowerShell, SQL, Git, CI/CD, Azure Pipelines, Docker, Bicep</br>
-        <strong>Operating Systems:</strong> Linux Ubuntu, Windows, Mac OS X</br>
-        <strong>Web & Middleware:</strong> Flask, Django</br>
-        <strong>Databases:</strong> Azure SQL Server, MySQL, SQLite, Oracle</br>
-        <strong>Monitoring:</strong> Azure Monitor, Grafana, Power BI, Tableau</br>
+    <!-- Technical Skills -->
+    <section class="section skills-section">
+      <h2 class="section-heading">Technical Skills</h2>
+      <ul class="skills-list">
+        <li><strong>Cloud & DevOps:</strong> Azure, Cloudflare, Infrastructure as Code (Bicep, ARM), Docker, Git, Azure DevOps, CI/CD</li>
+        <li><strong>Security:</strong> DevSecOps (Trivy, Checkov, MS Security DevOps), IDS, 2FA, OWASP Top 10, RBAC</li>
+        <li><strong>Monitoring:</strong> Grafana, Prometheus, Azure Monitor (Application Insights, Log Analytics, Metrics)</li>
+        <li><strong>Automation/Scripting & Web/Frameworks:</strong> Python, PowerShell, Bash, SQL, YAML; Flask, Django</li>
+        <li><strong>Systems & Databases:</strong> Linux, Windows, macOS; Azure SQL, MySQL, Oracle, SQLite</li>
+        <li><strong>Soft Skills:</strong> Communication & Collaboration, Stakeholder Engagement, Leadership, Problem Solving, Client Focused</li>
       </ul>
     </section>
 
-    <section>
-      <h2>Professional Development</h2>
-      <ul>
-        <strong>Microsoft Certified: Azure Administrator Associate (AZ-104)</strong> – in progress</br>
-        <strong>Microsoft Certified: Azure Fundamentals (AZ-900)</strong> – exam scheduled May 2025</br>
-        <strong>ISACA Vancouver Chapter</strong> – Member</br>
+    <!-- Professional Development -->
+    <section class="section development-section">
+      <h2 class="section-heading">Professional Development</h2>
+      <ul class="development-list">
+        <li><strong>Microsoft Certified: Azure Fundamentals</strong> – In Progress (Expected June 2025)</li>
+        <li><!-- If AZ-900 exam scheduled May 2025, adjust date to match PDF style -->
+            <!-- <strong>Microsoft Certified: Azure Administrator Associate (AZ-104)</strong> – In Progress</li> -->
+        <li><strong>ISACA (Information Systems Audit and Control Association) Vancouver Chapter</strong> – Member</li>
       </ul>
     </section>
 
-    <section>
-      <h2>Relevant Work Experience</h2>
-      <h3></strong>Platform Engineering Co-op Student</strong> – BC Housing, Burnaby, BC <span style="font-weight: lighter;">2025 – Present</span></h3>
-      <ul>
-        <li>Engineered cloud-native monitoring frameworks with Azure Monitor and Grafana</li>
-        <li>Built CI/CD pipelines with Bicep and Azure DevOps, cutting deployment time by 50%</li>
-        <li>Integrated DevSecOps tools: Trivy, Checkov, MS Security DevOps</li>
-        <li>Managed Azure App Services and automated secret integration with Key Vault</li>
-      </ul>
+    <!-- Relevant Work Experience -->
+    <section class="section experience-section">
+      <h2 class="section-heading">Relevant Work Experience</h2>
+
+      <div class="role">
+        <div class="role-header">
+          <h3 class="role-title">Platform Engineering Co-op Student</h3>
+          <div class="role-meta">
+            <span class="company">BC Housing, Burnaby, BC</span>
+            <span class="date">Jan 2025 – Present</span>
+          </div>
+        </div>
+        <ul class="role-bullets">
+          <li>Engineered cloud-native monitoring frameworks with Azure Monitor, Log Analytics, Application Insights, and Grafana, incorporating telemetry and alerting to enhance performance, uptime, and compliance</li>
+          <li>Developed end-to-end CI/CD pipelines using Bicep templates and Azure DevOps to deploy containerized applications, reducing deployment time by 50%</li>
+          <li>Implemented DevSecOps best practices by integrating vulnerability scanners Trivy, Checkov, and MS Security DevOps to secure Infrastructure as Code (IaC) deployments</li>
+          <li>Diagnosed and resolved broken dependencies by analyzing pipeline and build logs, improving CI/CD stability, and reducing build failure rates</li>
+          <li>Managed Linux-based cloud application environments with Azure App Services, including configuration of RBAC and Key Vault integrations</li>
+          <li>Designed and documented end-to-end system architecture and functional requirements for a technical PoC, translating business goals into scalable, secure solutions aligned with project constraints</li>
+        </ul>
+      </div>
     </section>
 
-    <section>
-      <h2>Projects</h2>
-      <h3>Enhanced Security for Django Web App</h3>
-      <ul>
-        <li>Implemented 2FA and QR-based secure login for Django admin</li>
-        <li>Added middleware rate-limiting and simulated real-world attack scenarios</li>
-      </ul>
+    <!-- Projects -->
+    <section class="section projects-section">
+      <h2 class="section-heading">Relevant Technical Projects</h2>
 
-      <h3>Video Rental Store API</h3>
-      <ul>
-        <li>Developed REST API in Flask with Azure SQL backend</li>
-        <li>Simulated customer transactions and optimized performance</li>
-      </ul>
+      <!-- Project 1 -->
+      <article class="project">
+        <div class="project-header">
+          <h3 class="project-title">Two-Factor Authentication Integration in Django Web Application</h3>
+          <span class="project-date">2024</span>
+        </div>
+        <div class="badges">
+          <span class="badge">Web Security</span>
+          <span class="badge">2FA</span>
+          <span class="badge">Django</span>
+          <span class="badge">Python</span>
+        </div>
+        <ul class="project-bullets">
+          <li>Enhanced the security of a Django-based web application by implementing a secure <b>two-factor authentication (2FA)</b> system to protect administrative access</li>
+          <li>Configured <b>web server</b> to manage secure device registration and QR-based authentication</li>
+          <li>Integrated <b>rate-limiting mechanism</b> to mitigate security risks such as <b>DDoS attacks</b></li>
+          <li>Conducted application-level <b>testing</b> by simulating real-world admin access scenarios to verify <b>secure authentication and error handling</b></li>
+        </ul>
+      </article>
 
-      <h3>Access Control System</h3>
-      <ul>
-        <li>Built Python-based role management system enforcing least-privilege access</li>
-        <li>Reduced time complexity from O(N) to O(1)</li>
-      </ul>
+      <!-- Project 2 -->
+      <article class="project">
+        <div class="project-header">
+          <h3 class="project-title">Secure Role-Based Access Control System for Sensitive Data</h3>
+          <span class="project-date">2023</span>
+        </div>
+        <div class="badges">
+          <span class="badge">Python</span>
+          <span class="badge">Role Based Acess Control</span>
+          <span class="badge">Security</span>
+          <span class="badge">Performance Optimization</span>
+        </div>
+        <ul class="project-bullets">
+          <li>Developed a Python-based <b>role management system</b> to control user access to sensitive information, supporting the enforcement of <b>least-privilege access policies</b></li>
+          <li>Engineered class methods and data structures to <b>track and limit active roles</b>, ensuring users operate within approved access boundaries; simulated real-world access scenarios to identify edge cases</li>
+          <li>Refactored functions to reduce time complexity from <b>O(N) to O(1)</b>, enhancing system performance</li>
+        </ul>
+      </article>
+
+      <!-- Project 3 -->
+      <article class="project">
+        <div class="project-header">
+          <h3 class="project-title">Real-Time Intrusion Detection with Machine Learning on Time-Series Data</h3>
+          <span class="project-date">2023</span>
+        </div>
+        <div class="badges">
+          <span class="badge">Cybersecurity</span>
+          <span class="badge">Intrusion Detection</span>
+          <span class="badge">Machine Learning</span>
+          <span class="badge">HMM</span>
+          <span class="badge">PCA</span>
+          <span class="badge">R (ggplot2, corrplot)</span>
+          <span class="badge">Visualization</span>
+        </div>
+        <ul class="project-bullets">
+          <li>Developed a real-time intrusion detection system using <b>multivariate time-series data</b> and <b>machine learning models</b> to identify anomalies in critical infrastructure systems</li>
+          <li>Preprocessed and cleaned time-series datasets for supervised and unsupervised <b>ML</b>; applied <b>PCA</b> for feature selection and dimensionality reduction</li>
+          <li>Visualized trends and model results using <b>R (ggplot2, corrplot, ggbiplot)</b> to support analytical storytelling</li>
+          <li>Summarized methods, insights, and outcomes in a <b>technical report</b> and <b>presentation</b>; collaborated in a 4-person team using <b>Git</b> for version control</li>
+        </ul>
+      </article>
+
+      <!-- Project 4 -->
+      <article class="project">
+        <div class="project-header">
+          <h3 class="project-title">Video Rental Store Platform with Flask API and Azure SQL Integration</h3>
+          <span class="project-date">2023</span>
+        </div>
+        <div class="badges">
+          <span class="badge">Flask</span>
+          <span class="badge">REST API</span>
+          <span class="badge">Azure SQL</span>
+          <span class="badge">Database</span>
+          <span class="badge">Cloud</span>
+        </div>
+        <ul class="project-bullets">
+          <li>Developed a <b>REST Web API</b> using <b>Flask</b> and <b>Python</b> to interact with <b>Azure SQL database</b></li>
+          <li>Handled data ingestion, transformation, and secure transactions through <b>API endpoints</b></li>
+          <li>Designed and <b>tested</b> transaction workflows to simulate real-world customer interactions and inventory updates, optimizing API performance</li>
+        </ul>
+      </article>
     </section>
 
-    <section>
-      <h2>Other Work Experience</h2>
-      <h3>Tutor – Self-Employed<span>2022 – Present</span></h3>
-      <h3>Customer Service Agent – Maximus Canada <span>2020 – 2021</span></h3>
-      <h3>Student Research Assistant – StemCell Technologies <span>2018</span></h3>
+    <!-- Other Work Experience -->
+    <section class="section other-exp-section">
+      <h2 class="section-heading">Other Work Experience</h2>
+      <div class="role">
+        <div class="role-header">
+          <h3 class="role-title">
+            Tutor
+            <span class="company">Self-Employed, Vancouver, BC</span>
+          </h3>
+          <span class="date">2022 – Present</span>
+        </div>
+        <ul class="role-bullets">
+          <li>Delivered personalized tutoring in Math, Chemistry, and Physics, improving test scores by over 20%</li>
+          <li>Maintained ongoing communication with clients to report progress and adapt learning plans, demonstrating strong interpersonal and data-informed decision-making skills</li>
+        </ul>
+      </div>
+      <div class="role">
+        <div class="role-header">
+          <h3 class="role-title">
+            Customer Service Agent
+            <span class="company">Maximus Canada, Victoria, BC</span>
+            </h3>
+            <span class="date">2020 – 2021</span>
+          </div>
+        <ul class="role-bullets">
+          <li>Delivered client-focused support in high-pressure environments, managing 125+ inquiries daily while maintaining over 95% customer satisfaction and zero escalations</li>
+          <li>Recognized for adaptability, technical fluency, and frequently relied on for peer technical support and real-time issue resolution</li>
+        </ul>
+      </div>
+      <div class="role">
+        <div class="role-header">
+          <h3 class="role-title">
+            Student Research Assistant
+            <span class="company">StemCell Technologies Inc., Vancouver, BC</span>
+            </h3>
+            <span class="date">2018</span>
+          </div>
+        <ul class="role-bullets">
+          <li>Collaborated with cross-functional teams to optimize experimental protocols, improving efficiency and data quality in cell isolation and analysis, resulting in the deployment of two new products</li>
+          <li>Saved $10,000 by applying a detail-oriented approach, leading to reduced rework in operational processes</li>
+          <li>Conducted data analysis and created visualizations to support decision-making, presenting findings to senior management</li>
+        </ul>
+      </div>
     </section>
 
-    <section>
-      <h2>Education</h2>
-      <p><strong>Simon Fraser University</strong><span>Burnaby, BC</span><br />
-         Post Baccalaureate Diploma in Computer Science <span>2025</span></p>
-      <p><strong>University of Victoria</strong><span>Victoria, BC</span><br />
-         BSc Biochemistry and Chemistry (2018)<span>2018</span></p>
+    <!-- Education -->
+    <section class="section education-section">
+      <h2 class="section-heading">Education</h2>
+
+      <div class="education-item">
+        <h3 class="edu-institution">Simon Fraser University</h3>
+        <div class="edu-meta">
+          <span class="location">Burnaby, BC</span>
+        </div>
+          <span class="edu-date">est. 2025</span>
+        <p class="edu-degree">Post Baccalaureate Diploma in Computer Science</p>
+      </div>
+
+      <div class="education-item">
+        <h3 class="edu-institution">University of Victoria</h3>
+        <div class="edu-meta">
+          <span class="location">Victoria, BC</span>
+        </div>
+          <span class="edu-date">2018</span>
+        <p class="edu-degree">BSc Biochemistry and Chemistry</p>
+      </div>
     </section>
+
   </div>
 </body>
 </html>

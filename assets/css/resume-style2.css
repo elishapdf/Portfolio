@@ -1,0 +1,264 @@
+/* 1. Reset & Box-Sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 2. Root & Base Font Size */
+/* Choose a base so that 1rem ≈ 12px (common resume body). If browser default is 16px, set html font-size: 75% (0.75 * 16px = 12px) */
+html {
+  font-size: 75%; /* 1rem = 12px */
+}
+
+:root {
+  /* Colors */
+  --color-bg: #f4f4f4;
+  --color-surface: #ffffff;
+  --color-text: #333333;
+  --color-text-muted: #555555;
+  --color-heading: #222222;
+  --color-border: #cccccc;
+  --color-primary: #007bff;
+  --color-badge-bg: #e0e0e0;
+  --color-badge-text: #333333;
+
+  /* Spacing scale (in rems; 1rem = 12px) */
+  --space-xxs: 0.25rem; /* 3px */
+  --space-xs:  0.5rem;  /* 6px */
+  --space-sm:  0.75rem; /* 9px */
+  --space-md:  1rem;    /* 12px */
+  --space-lg:  1.5rem;  /* 18px */
+  --space-xl:  2rem;    /* 24px */
+  --space-2xl: 3rem;    /* 36px */
+
+  /* Border radius (small) */
+  --radius-sm: 2px;
+
+  /* Fonts */
+  --font-sans: 'Inter', 'Roboto', sans-serif;
+}
+
+b {
+    font-weight: bold;
+}
+
+/* 3. Body & Container */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.4; /* 1.4 * 12px ~16.8px line height */
+}
+
+.container {
+  max-width: 800px; /* narrower for print/resume */
+  margin: var(--space-2xl) auto;
+  padding: var(--space-md) var(--space-md);
+  background-color: var(--color-surface);
+}
+
+/* 4. Header / Name */
+.resume-header {
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+.name {
+  font-size: 2.5rem; /* ~30px for name */
+  font-weight: 700;
+  color: var(--color-heading);
+  /* If you want letter-spacing: */
+  letter-spacing: 1px;
+}
+.contact {
+  margin-top: var(--space-xs);
+  font-size: 0.875rem; /* ~10.5px */
+  color: var(--color-text-muted);
+}
+
+/* 5. Section Headings */
+.section {
+  margin-bottom: var(--space-lg);
+}
+.section-heading {
+  font-size: 1rem; /* ~12px */ 
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-xs);
+  margin-bottom: var(--space-md);
+  color: var(--color-heading);
+}
+
+/* 6. Skills & Development Lists */
+.skills-list,
+.development-list {
+  list-style: none;
+  margin-left: 0;
+  /* use left padding for alignment if desired: */
+  padding-left: var(--space-md);
+}
+.skills-list li,
+.development-list li {
+  margin-bottom: var(--space-xs);
+  font-size: 0.875rem; /* ~10.5px */
+}
+.skills-list li strong,
+.development-list li strong {
+  font-weight: 600;
+  /* same size, but bold */
+}
+
+/* 7. Experience Roles */
+.role {
+  margin-bottom: var(--space-md);
+}
+.role-header {
+display: flex;
+justify-content: space-between;
+align-items: baseline;
+margin-bottom: var(--space-xs);
+}
+
+.role-title {
+font-size: 1rem; /* ~12px */
+font-weight: 600;
+color: var(--color-heading);
+/* allow wrapping so company doesn’t overflow */
+display: inline-flex;
+flex-wrap: wrap;
+align-items: baseline;
+}
+
+.role-title .company {
+font-size: 0.875rem;          /* match metadata size */
+color: var(--color-text-muted);
+margin-left: var(--space-md); /* small gap */
+font-style: normal;           /* override italic if inherited */
+font-weight: normal;
+}
+
+/* date stays on the right */
+.role-meta .date,
+.date {
+font-size: 0.875rem;
+color: var(--color-text-muted);
+font-style: italic;
+}
+
+/* Bullets under roles */
+.role-bullets {
+  list-style: disc;
+  margin-left: var(--space-md);
+  padding-left: 8px;
+}
+.role-bullets li {
+  margin-bottom: var(--space-xs);
+  font-size: 0.875rem; /* ~10.5px */
+}
+
+/* 8. Projects */
+.project {
+  margin-bottom: var(--space-md);
+}
+.project-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-xs);
+}
+.project-title {
+  font-size: 1rem; /* ~12px */
+  font-weight: 600;
+  color: var(--color-heading);
+}
+.project-date {
+  font-size: 0.875rem; /* ~10.5px */
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Badges */
+.badges {
+  margin-bottom: var(--space-xs);
+}
+.badge {
+  display: inline-block;
+  background-color: var(--color-badge-bg);
+  color: var(--color-badge-text);
+  font-size: 0.75rem; /* ~9px */
+  line-height: 1;
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm);
+  margin: 0 var(--space-xxs) var(--space-xxs) 0;
+}
+
+/* Project bullets */
+.project-bullets {
+  list-style: disc;
+  margin-left: var(--space-md);
+  padding-left: 8px;
+}
+.project-bullets li {
+  margin-bottom: var(--space-xs);
+  font-size: 0.875rem; /* ~10.5px */
+
+}
+
+/* 9. Other Experience: reuse .role styles */
+.other-exp-section .role + .role {
+  margin-top: var(--space-md);
+}
+
+/* 10. Education */
+.education-item {
+  display: grid;
+  grid-template-columns: 1fr auto;    /* left = flexible, right = auto‑width */
+  grid-template-rows: auto auto;      /* two rows */
+  row-gap: var(--space-xxs);  
+  margin-bottom: var(--space-md);
+}
+.edu-institution {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 1rem; /* ~12px */
+  font-weight: 600;
+  color: var(--color-heading);
+}
+.edu-meta {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.875rem; /* ~10.5px */
+  color: var(--color-text-muted);
+}
+/* .edu-meta .location {
+  margin-right: var(--space-sm);
+} */
+.edu-date {
+  grid-column: 2;
+  grid-row: 2;
+  font-style: italic;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+.edu-degree {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 0.875rem; /* ~10.5px */
+  margin-top: var(--space-xs);
+}
+
+/* 11. Utility (if needed) */
+/* e.g., small divider */
+.hr-small {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-md) 0;
+}
