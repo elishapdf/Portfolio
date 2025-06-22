@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deploying a Lambda Function & S3 Bucket with AWS CDK (Python)</title>
+</head>
+<body>
+
+<h1>Deploying a Lambda Function & S3 Bucket with AWS CDK (Python)</h1>
+
+<p>This project demonstrates how to deploy a simple AWS Lambda function and an S3 bucket using the AWS Cloud Development Kit (CDK) in Python. It's written for beginners new to cloud infrastructure, DevOps, or Infrastructure as Code (IaC). Along the way, you'll follow security best practices and troubleshoot a real-world deployment issue.</p>
+
+<h2>Skills Demonstrated</h2>
+<ul>
+  <li>Infrastructure as Code using AWS CDK (Python)</li>
+  <li>Packaging and deploying AWS Lambda functions</li>
+  <li>Secure IAM practices (avoiding root credentials)</li>
+  <li>CloudFormation synthesis and asset management</li>
+  <li>Command-line troubleshooting and CDK internals</li>
+</ul>
+
+<h2>Prerequisites</h2>
+<ul>
+  <li>AWS account (create one <a href="https://aws.amazon.com/free">here</a>)</li>
+  <li>AWS CLI v2 installed and configured</li>
+  <li>Python 3.8+ (tested with Python 3.12)</li>
+  <li>Node.js v14+ (tested with Node.js 22.16.0 and npm 10.9.2)</li>
+  <li>AWS CDK v2 installed: <code>npm install -g aws-cdk</code></li>
+</ul>
+
+<h2>Setting Up AWS Access Without Root Credentials</h2>
+
+<p>As a new AWS user, configure your environment securely without using your root account. It's unsafe and should be avoided except for initial account setup.</p>
+
+<h3>Option 1: IAM User</h3>
+<ol>
+  <li>Go to the <a href="https://console.aws.amazon.com/iam">IAM Console</a>.</li>
+  <li>Create a new <strong>IAM user</strong> with:
+    <ul>
+      <li>Programmatic access</li>
+      <li>AdministratorAccess (for development only)</li>
+    </ul>
+  </li>
+  <li>Run the AWS CLI configuration:</li>
+</ol>
+
+<pre><code>aws configure --profile cdk-sre-demo</code></pre>
+
+<p>Enter:</p>
+<ul>
+  <li>Access key ID</li>
+  <li>Secret access key</li>
+  <li>Region (e.g., us-west-2)</li>
+  <li>Output format (optional: json)</li>
+</ul>
+
+<p>Use this profile for all CDK commands:</p>
+<pre><code>cdk bootstrap --profile cdk-sre-demo</code></pre>
+
+<h3>Option 2: IAM Identity Center (SSO)</h3>
+<ol>
+  <li>Run:</li>
+</ol>
+
+<pre><code>aws configure sso</code></pre>
+
+<ol start="2">
+  <li>Authenticate:</li>
+</ol>
+
+<pre><code>aws sso login --profile my-sso-profile</code></pre>
+
+<ol start="3">
+  <li>Use it with CDK:</li>
+</ol>
+
+<pre><code>cdk bootstrap --profile my-sso-profile</code></pre>
+
+<h3>Quick Setup Recap</h3>
+<ul>
+  <li><strong>Never use root credentials</strong> for CLI/CDK access.</li>
+  <li>Use an IAM user or SSO to configure access:</li>
+  <ul>
+    <li><code>aws configure --profile</code> or <code>aws configure sso</code></li>
+  </ul>
+  <li>Always pass the correct profile to CDK with <code>--profile</code></li>
+</ul>
+
+<h2>Project Setup</h2>
+
+<h3>Initialize the CDK Project</h3>
+
+<pre><code>
+mkdir cdk-sre-demo && cd cdk-sre-demo
+cdk init app --language python
+</code></pre>
+
+<p><strong>Note:</strong> The folder must be empty before running <code>cdk init</code>.</p>
+
+<p>After initialization, your folder should look like this:</p>
+<pre><code>
+cdk-sre-demo/
+├── app.py
+├── cdk_sre_demo/
+│   ├── __init__.py
+│   └── cdk_sre_demo_stack.py
+├── requirements.txt
+├── lambda/
+│   └── hello_lambda.py
+├── .gitignore
+├── README.md
+└── cdk.json
+</code></pre>
+
+<h3>Create Virtual Environment and Install Dependencies</h3>
+
+<pre><code>
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+</code></pre>
+
+<p>Confirm <code>requirements.txt</code> contains:</p>
+<pre><code>
+aws-cdk-lib==2.139.0
+constructs>=10.0.0,&lt;11.0.0
+</code></pre>
+
+<h2>Write Your Lambda Function</h2>
+
+<p>Create <code>lambda/hello_lambda.py</code> with the following content:</p>
+
+<pre><code>
+def handler(event, context):
+    print("Hello from Lambda!")
+    return {
+        'statusCode': 200,
+        'body': 'Lambda function executed successfully.'
+    }
+</code></pre>
+
+<h2>Define Your Infrastructure Stack</h2>
+
+<p>In <code>cdk_sre_demo/cdk_sre_demo_stack.py</code>, define the infrastructure:</p>
+
+<pre><code>
+from aws_cdk import (
+    Stack,
+    aws_s3 as s3,
+    aws_lambda as _lambda,
+)
+from constructs import Construct
+
+class CdkSreDemoStack(Stack):
+    def __init__(self, scope: Construct, construct_id: str, **kwargs):
+        super().__init__(scope, construct_id, **kwargs)
+
+        s3.Bucket(self, "SreDemoBucket", versioned=True)
+
+        _lambda.Function(
+            self, "HelloLambda",
+            runtime=_lambda.Runtime.PYTHON_3_10,
+            handler="hello_lambda.handler",
+            code=_lambda.Code.from_asset("lambda")
+        )
+</code></pre>
+
+<h3>Verify Entry Point (app.py)</h3>
+
+<p>Make sure <code>app.py</code> contains:</p>
+
+<pre><code>
+#!/usr/bin/env python3
+import aws_cdk as cdk
+from cdk_sre_demo.cdk_sre_demo_stack import CdkSreDemoStack
+
+app = cdk.App()
+CdkSreDemoStack(app, "CdkSreDemoStack")
+app.synth()
+</code></pre>
+
+<h2>Deploy the Stack</h2>
+
+<pre><code>
+cdk bootstrap --profile cdk-sre-demo
+cdk deploy --profile cdk-sre-demo
+</code></pre>
+
+<h2>Troubleshooting: Lambda Not Zipping Correctly</h2>
+
+<p>If you see this error during deployment:</p>
+
+<blockquote>
+  Uploaded file must be a non-empty zip (Service: Lambda, Status Code: 400…)
+</blockquote>
+
+<p>Run:</p>
+<pre><code>cdk synth --profile cdk-sre-demo</code></pre>
+
+<p>If you don’t see a <code>.zip</code> file under <code>cdk.out</code>:</p>
+
+<pre><code>find cdk.out -type f -name '*.zip'</code></pre>
+
+<p>Then CDK isn’t packaging your Lambda function correctly. Workaround:</p>
+
+<h3>Manual ZIP Workaround</h3>
+
+<pre><code>
+cd lambda
+zip -j ../hello_lambda.zip hello_lambda.py
+cd ..
+</code></pre>
+
+<p>Update the CDK stack to point to the ZIP file:</p>
+
+<pre><code>
+_lambda.Function(
+    self, "HelloLambda",
+    runtime=_lambda.Runtime.PYTHON_3_12,
+    handler="hello_lambda.handler",
+    code=_lambda.Code.from_asset("hello_lambda.zip")
+)
+</code></pre>
+
+<h3>Clean and Re-Synthesize</h3>
+
+<pre><code>
+rm -rf cdk.out
+cdk synth --profile cdk-sre-demo
+find cdk.out -type f -name '*.zip'
+</code></pre>
+
+<p>To inspect the contents:</p>
+<pre><code>unzip -l cdk.out/assets/&lt;your-hash&gt;.zip</code></pre>
+
+<h2>Final Deployment</h2>
+
+<pre><code>
+cdk bootstrap --profile cdk-sre-demo
+cdk deploy --profile cdk-sre-demo
+</code></pre>
+
+<h2>Confirming the Deployment</h2>
+
+<h3>Option 1: AWS Console</h3>
+
+<h4>S3 Bucket</h4>
+<ul>
+  <li>Go to the S3 Console</li>
+  <li>Find the bucket with name like <code>CdkSreDemoStack-SreDemoBucketXXXXX</code></li>
+  <li>Click into it and confirm versioning is enabled</li>
+</ul>
+
+<h4>Lambda Function</h4>
+<ul>
+  <li>Go to the Lambda Console</li>
+  <li>Find <code>CdkSreDemoStack-HelloLambdaXXXXX</code></li>
+  <li>Use the Monitor tab to check logs</li>
+  <li>Use the Test tab to create a test event and invoke</li>
+</ul>
+
+<h3>Option 2: AWS CLI</h3>
+
+<h4>Verify S3 Bucket</h4>
+
+<pre><code>aws s3 ls --profile cdk-sre-demo</code></pre>
+
+<pre><code>
+aws s3api get-bucket-versioning \
+  --bucket your-bucket-name \
+  --profile cdk-sre-demo
+</code></pre>
+
+<h4>Verify Lambda</h4>
+
+<pre><code>
+aws lambda list-functions --profile cdk-sre-demo
+
+aws lambda invoke \
+  --function-name CdkSreDemoStack-HelloLambdaXXXXX \
+  --profile cdk-sre-demo \
+  response.json
+
+cat response.json
+</code></pre>
+
+<h2>Tearing Down</h2>
+
+<pre><code>cdk destroy --profile cdk-sre-demo</code></pre>
+
+<h2>Conclusion</h2>
+<p>This project demonstrates the lifecycle of deploying AWS infrastructure using CDK with Python—from IAM setup to deployment and troubleshooting. It reflects real-world issues, including asset packaging problems, and shows how to resolve them using practical CLI-based solutions.</p>
+
+</body>
+</html>
