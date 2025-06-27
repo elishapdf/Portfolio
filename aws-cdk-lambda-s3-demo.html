@@ -210,110 +210,152 @@
       cdk deploy --profile cdk-sre-demo
       </code></pre>
       
-      <h2>Troubleshooting: Lambda Not Zipping Correctly</h2>
-      
-      <p>If you see this error during deployment:</p>
-      
-      <blockquote>
-        Uploaded file must be a non-empty zip (Service: Lambda, Status Code: 400…)
-      </blockquote>
-      
-      <p>Run:</p>
-      <pre><code>cdk synth --profile cdk-sre-demo</code></pre>
-      
-      <p>If you don’t see a <code>.zip</code> file under <code>cdk.out</code>:</p>
-      
-      <pre><code>find cdk.out -type f -name '*.zip'</code></pre>
-      
-      <p>Then CDK isn’t packaging your Lambda function correctly. Workaround:</p>
-      
-      <h3>Manual ZIP Workaround</h3>
-      
-      <pre><code>
-      cd lambda
-      zip -j ../hello_lambda.zip hello_lambda.py
-      cd ..
-      </code></pre>
-      
-      <p>Update the CDK stack to point to the ZIP file:</p>
-      
-      <pre><code>
-      _lambda.Function(
-          self, "HelloLambda",
-          runtime=_lambda.Runtime.PYTHON_3_12,
-          handler="hello_lambda.handler",
-          code=_lambda.Code.from_asset("hello_lambda.zip")
-      )
-      </code></pre>
-      
-      <h3>Clean and Re-Synthesize</h3>
-      
-      <pre><code>
-      rm -rf cdk.out
-      cdk synth --profile cdk-sre-demo
-      find cdk.out -type f -name '*.zip'
-      </code></pre>
-      
-      <p>To inspect the contents:</p>
-      <pre><code>unzip -l cdk.out/assets/&lt;your-hash&gt;.zip</code></pre>
-      
-      <h2>Final Deployment</h2>
-      
-      <pre><code>
-      cdk bootstrap --profile cdk-sre-demo
-      cdk deploy --profile cdk-sre-demo
-      </code></pre>
-      
-      <h2>Confirming the Deployment</h2>
-      
-      <h3>Option 1: AWS Console</h3>
-      
-      <h4>S3 Bucket</h4>
+      <h2>Troubleshooting Deployment: Lambda Not Zipping Correctly</h2>
+
+  <h3>Error Description</h3>
+  <p>
+    Sometimes (or most of the time) things don’t go as smoothly as expected. In my case, every time I ran <code>cdk deploy</code>, I hit an error that indicated:
+  </p>
+  <blockquote>
+    Uploaded file must be a non-empty zip (Service: Lambda, Status Code: 400…)
+  </blockquote>
+  <p>
+    This hinted that CDK wasn’t zipping and staging my Lambda function properly. More accurately, CDK failed to detect the Lambda directory as a valid asset. As a result, it didn't bundle and upload the function code to S3, causing a Lambda deployment error.
+  </p>
+  <p>
+    I double-checked my functions and folder structure, but everything looked correct. To investigate further, I ran:
+  </p>
+  <pre><code>cdk synth --profile dev-user</code></pre>
+  <p>
+    This command synthesizes your CDK app into a CloudFormation template and outputs the resource definitions. Normally, under the Lambda section, you should see a ZIP file reference like this:
+  </p>
+  <pre><code>
+Resources:
+  HelloLambda…:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-&lt;AccountId&gt;-&lt;Region&gt;
+        S3Key: 12118b59e….zip
+  </code></pre>
+  <p>Which I did, but when I ran:</p>
+  <pre><code>find cdk.out -type f -name '*.zip'</code></pre>
+  <p>
+    No .zip file was found! That’s when I realized: CDK wasn’t packaging the function directory at all. It was just copying the <code>hello_lambda.py</code> file directly into <code>cdk.out/assets/</code>.
+  </p>
+
+  <h3>Workaround: Manually Zip the Lambda Function</h3>
+  <p>
+    To keep the project moving, I used a simple workaround: manually zipped the Lambda file and referenced it explicitly in the CDK stack.
+  </p>
+  <pre><code>
+cd lambda
+zip -j ../hello_lambda.zip hello_lambda.py
+cd ..
+  </code></pre>
+  <p>
+    This will result in the <code>.zip</code> file in your project root directory.
+  </p>
+  <p>
+    Then in <code>cdk_sre_demo_stack.py</code>, I updated the Lambda block:
+  </p>
+  <pre><code>
+_lambda.Function(
+    self, "HelloLambda",
+    runtime=_lambda.Runtime.PYTHON_3_12,
+    handler="hello_lambda.handler",
+    code=_lambda.Code.from_asset("hello_lambda.zip")
+)
+  </code></pre>
+  <p>
+    <code>Code.from_asset(path)</code> tells CDK to package a local file or folder and upload it to S3 as a Lambda asset.
+  </p>
+
+  <h3>Clean and Re-Synthesize</h3>
+  <p>To clean your directory of old deployment files, remove previously synthesized outputs before re-synthesizing:</p>
+  <pre><code>
+rm -rf cdk.out
+cdk synth --profile cdk-sre-demo
+  </code></pre>
+  <p>Double-check that the zipped folder is in the <code>cdk.out</code> directory by running:</p>
+  <pre><code>find cdk.out -type f -name '*.zip'</code></pre>
+  <p>Unzip:</p>
+  <pre><code>unzip -l cdk.out/assets/&lt;that-hash&gt;.zip</code></pre>
+  <p>If it lists <code>hello_lambda.py</code>, you're good to go!</p>
+
+  <h3>Final Deployment</h3>
+  <pre><code>
+cdk bootstrap --profile dev-user
+cdk deploy --profile dev-user
+  </code></pre>
+
+  <h2>Verifying Resources</h2>
+  <p>You can confirm your resources are up and running in two ways, AWS UI or via terminal:</p>
+
+  <h3>Option 1: AWS Console</h3>
+  <h4>S3 Bucket</h4>
+  <ul>
+    <li>Go to the S3 Console.</li>
+    <li>Look for a bucket named something like <code>CdkSreDemoStack-SreDemoBucketXXXXX</code>.</li>
+    <li>Click into it to confirm it exists and versioning is enabled.</li>
+  </ul>
+
+  <h4>Lambda Function</h4>
+  <ul>
+    <li>Go to the Lambda Console.</li>
+    <li>Find the function named <code>CdkSreDemoStack-HelloLambdaXXXXX</code>.</li>
+    <li>Click it, and then:
       <ul>
-        <li>Go to the S3 Console</li>
-        <li>Find the bucket with name like <code>CdkSreDemoStack-SreDemoBucketXXXXX</code></li>
-        <li>Click into it and confirm versioning is enabled</li>
+        <li>In the <strong>Monitor</strong> tab → check the <strong>Log streams</strong> to ensure the function executed successfully without errors.</li>
+        <li>In the <strong>Test</strong> tab, create a test event, run the function, and verify the output.</li>
+        <li>You should see: “Lambda function executed successfully.”</li>
       </ul>
-      
-      <h4>Lambda Function</h4>
-      <ul>
-        <li>Go to the Lambda Console</li>
-        <li>Find <code>CdkSreDemoStack-HelloLambdaXXXXX</code></li>
-        <li>Use the Monitor tab to check logs</li>
-        <li>Use the Test tab to create a test event and invoke</li>
-      </ul>
-      
-      <h3>Option 2: AWS CLI</h3>
-      
-      <h4>Verify S3 Bucket</h4>
-      
-      <pre><code>aws s3 ls --profile cdk-sre-demo</code></pre>
-      
-      <pre><code>
-      aws s3api get-bucket-versioning \
-        --bucket your-bucket-name \
-        --profile cdk-sre-demo
-      </code></pre>
-      
-      <h4>Verify Lambda</h4>
-      
-      <pre><code>
-      aws lambda list-functions --profile cdk-sre-demo
-      
-      aws lambda invoke \
-        --function-name CdkSreDemoStack-HelloLambdaXXXXX \
-        --profile cdk-sre-demo \
-        response.json
-      
-      cat response.json
-      </code></pre>
-      
-      <h2>Tearing Down</h2>
-      
-      <pre><code>cdk destroy --profile cdk-sre-demo</code></pre>
-      
-      <h2>Conclusion</h2>
-      <p>This project demonstrates the lifecycle of deploying AWS infrastructure using CDK with Python—from IAM setup to deployment and troubleshooting. It reflects real-world issues, including asset packaging problems, and shows how to resolve them using practical CLI-based solutions.</p>
+    </li>
+  </ul>
+
+  <h3>Option 2: AWS CLI</h3>
+
+  <h4>Verify the S3 bucket</h4>
+  <p>If you prefer to confirm your resources through the terminal, run the below command:</p>
+  <pre><code>aws s3 ls --profile cdk-sre-demo</code></pre>
+  <p>Check if versioning is enabled:</p>
+  <pre><code>
+aws s3api get-bucket-versioning \
+  --bucket your-bucket-name-here \
+  --profile cdk-sre-demo
+  </code></pre>
+  <p>You should see something like:</p>
+  <pre><code>
+{
+  "Status": "Enabled"
+}
+  </code></pre>
+  <p>This confirms the bucket was created with versioning, as specified in your CDK stack.</p>
+
+  <h4>Verify the Lambda function</h4>
+  <p>List Lambda Functions:</p>
+  <pre><code>aws lambda list-functions --profile dev-user</code></pre>
+  <p>Invoke the Function:</p>
+  <pre><code>
+aws lambda invoke \
+  --function-name &lt;your-function-name&gt; \
+  --profile dev-user \
+  response.json
+
+cat response.json
+  </code></pre>
+  <p>You should see something like:</p>
+  <pre><code>
+{
+  "statusCode": 200,
+  "body": "Lambda function executed successfully."
+}
+  </code></pre>
+  <p><strong>Note:</strong> You can also see this function invocation in the AWS Lambda console.</p>
+
+  <h2>Tearing Down</h2>
+  <p>To delete everything you deployed:</p>
+  <pre><code>cdk destroy --profile dev-user</code></pre>
       
     </div>
   </section>
