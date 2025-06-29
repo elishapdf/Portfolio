@@ -1,0 +1,290 @@
+    <!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>AWS CDK Lambda Uptime Monitoring</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+      <link rel="stylesheet" href="assets/css/main.css" />
+      <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+  </head>
+<body class="is-preload">
+
+  <!-- Header -->
+  <header id="header">
+    <a href="index.html" class="title">Elisha Hayer</a>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <!-- <li><a href="generic.html">Generic</a></li> -->
+        <li><a href="aws-cdk-lambda-s3-demo.html">Deploying AWS Lambda and S3 with CDK (Python)</a></li>
+        <li><a href="aws-lambda-uptime-monitor.html" class="active">AWS CDK Lambda Uptime Monitoring</a></li>
+        <!-- <li><a href="elements.html">Elements</a></li> -->
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Wrapper -->
+  <div id="wrapper">
+
+    <!-- Main -->
+    <section id="main" class="wrapper">
+      <div class="inner">
+        <h1 class="major">AWS CDK Lambda Uptime Monitoring</h1>
+        <!-- <span class="image fit"><img src="images/pic04.jpg" alt="" /></span> -->
+
+    <p>After <a href="aws-cdk-lambda-s3-demo.html">building and deploying my first AWS CDK project</a>—a simple Lambda function and S3 bucket—I wanted to push the concept further.</p>
+
+    <p>The initial project taught me how to:</p>
+    <ul>
+        <li>Package and deploy Python-based Lambda functions</li>
+        <li>Use AWS CDK to synthesize and deploy CloudFormation templates</li>
+        <li>Handle IAM access securely (without using root credentials)</li>
+        <li>Debug real-world issues like Lambda bundling and deployment errors</li>
+    </ul>
+
+    <p>Building upon that foundation, I created a <strong>Serverless Uptime Checker</strong> that:</p>
+    <ul>
+        <li>Monitors websites every 5 minutes using an AWS Lambda triggered by EventBridge</li>
+        <li>Logs uptime data to CloudWatch Logs</li>
+        <li>Sends optional email alerts via SNS when a site becomes unreachable</li>
+    </ul>
+
+    <p>This project demonstrates practical DevOps skills in automation, observability, and cloud infrastructure, using fully managed, serverless AWS services.</p>
+
+    <h2>Skills Demonstrated:</h2>
+    <ul>
+        <li><strong>Infrastructure as Code (IaC):</strong> Provisioned cloud resources using AWS CDK and Python</li>
+        <li><strong>Monitoring and Observability:</strong> Built an automated uptime checker using AWS Lambda, Amazon EventBridge, CloudWatch Logs and Alarms, and SNS</li>
+        <li><strong>Secure Parameterization & IAM:</strong> Passed sensitive values at deploy time via CDK Parameters and applied least-privilege IAM permissions</li>
+    </ul>
+
+    <h2>Prerequisites:</h2>
+    <ul>
+        <li>AWS account with programmatic access (via IAM user or role)</li>
+        <li>AWS CLI: <a href="https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html" target="_blank" rel="noopener">Install AWS CLI</a></li>
+        <li>Python 3.8+</li>
+        <li>Node.js (v14 or later) and NPM (for CDK CLI dependencies): <a href="https://nodejs.org/en" target="_blank" rel="noopener">https://nodejs.org/en</a></li>
+        <li>AWS CDK v2: <code>npm install -g aws-cdk</code></li>
+        <li>(Optional) Python virtual environment tool like <code>venv</code> for dependency isolation</li>
+    </ul>
+
+    <h2>Project Setup</h2>
+
+    <h3>Project Initialization</h3>
+    <p>Create and initialize your AWS CDK app:</p>
+    <pre><code class="language-bash">mkdir uptime-checker && cd uptime-checker
+    cdk init app --language python
+    </code></pre>
+
+    <p>(Optional) Set up a Python virtual environment:</p>
+    <pre><code class="language-bash">python -m venv .venv
+    source .venv/bin/activate   # For Windows: .venv\Scripts\activate
+    </code></pre>
+
+    <p>After running this command, your project directory should now look like this:</p>
+    <pre><code class="language-bash">uptime-checker/
+    ├── README.md
+    ├── app.py
+    ├── cdk.json
+    ├── uptime_checker/
+    │   ├── __init__.py
+    │   └── uptime_checker_stack.py
+    ├── lambda/
+    │   ├── __init__.py
+    │   └── lambda_function.py
+    ├── requirements.txt
+    ├── .gitignore
+    └── .venv/  (optional, virtual environment)
+    </code></pre>
+
+    <h3>Install Dependencies</h3>
+    <p>Update <code>requirements.txt</code> to include:</p>
+    <pre><code class="language-bash">aws-cdk-lib==2.x.x
+    constructs&gt;=10.0.0,&lt;11.0.0
+    requests
+    </code></pre>
+
+    <p>Then install dependencies:</p>
+    <pre><code class="language-bash">pip install -r requirements.txt
+    </code></pre>
+
+    <h2>Write Your Lambda Function</h2>
+    <p>The Lambda function <code>lambda/lambda_function.py</code> reads a list of websites from an environment variable (<code>WEBSITES_JSON</code>), checks each URL, and logs whether the site is up, down, or returning an error status.</p>
+
+    <pre><code class="language-python">import os, json, requests
+    from datetime import datetime, timezone
+
+    WEBSITES = json.loads(os.environ['WEBSITES_JSON'])
+
+    def lambda_handler(event, context):
+        timestamp = datetime.now(timezone.utc).isoformat()
+        for site in WEBSITES:
+            name, url = site['name'], site['url']
+            try:
+                resp = requests.get(url, timeout=5)
+                status = "Up" if resp.status_code == 200 else f"Error {resp.status_code}"
+            except requests.RequestException:
+                status = "Down"
+            print(f"{timestamp} | {name} ({url}) → {status}")
+        return {'statusCode': 200}
+    </code></pre>
+
+    <h2>Define Your Infrastructure Stack</h2>
+    <p>This CDK stack <code>uptime_checker/uptime_checker_stack.py</code> defines the serverless infrastructure for your uptime checker by setting up:</p>
+    <ul>
+        <li>A Lambda function to check site status</li>
+        <li>An EventBridge rule to run the Lambda every 5 minutes</li>
+        <li>An environment variable (<code>WEBSITES_JSON</code>) to pass monitored URLs securely</li>
+    </ul>
+
+    <pre><code class="language-python">from aws_cdk import (
+        Stack,
+        Duration,
+        aws_lambda as _lambda,
+        aws_events as events,
+        aws_events_targets as targets,
+    )
+    from constructs import Construct
+    import json
+
+    class UptimeCheckerStack(Stack):
+
+        def __init__(self, scope: Construct, construct_id: str, **kwargs):
+            super().__init__(scope, construct_id, **kwargs)
+
+            websites = [
+                {"name": "Portfolio", "url": "https://portfolio-4wj.pages.dev/"},
+                {"name": "TrustScience", "url": "https://trustscience.com"}
+            ]
+
+            fn = _lambda.Function(
+                self, "UptimeCheckFn",
+                runtime=_lambda.Runtime.PYTHON_3_10,
+                handler="lambda_function.lambda_handler",
+                code=_lambda.Code.from_asset("lambda"),
+                environment={
+                    "WEBSITES_JSON": json.dumps(websites)
+                },
+                timeout=Duration.seconds(10)
+            )
+
+            events.Rule(
+                self, "5MinRule",
+                schedule=events.Schedule.rate(Duration.minutes(5)),
+                targets=[targets.LambdaFunction(fn)]
+            )
+    </code></pre>
+
+    <p><b><em>Tip:</em> </b>For better flexibility, you can make the monitored websites configurable via environment variables, CDK context, or SSM Parameters.</p>
+
+    <h2>Adding Email Alerts via SNS + CloudWatch Alarm (Secure & Parameterized)</h2>
+    <p>To extend the functionality of our uptime checker with notifications, we will add:</p>
+    <ul>
+        <li>An SNS Topic to publish alerts</li>
+        <li>An email subscription, passed as a CDK parameter</li>
+        <li>A CloudWatch Alarm that triggers when the Lambda function records errors</li>
+    </ul>
+
+    <h3>Step 1: Update Your Stack (<code>uptime_checker_stack.py</code>)</h3>
+    <pre><code class="language-python">from aws_cdk import (
+        Duration,
+        Stack,
+        aws_lambda as _lambda,
+        aws_events as events,
+        aws_events_targets as targets,
+        aws_logs as logs,
+        aws_sns as sns,
+        aws_sns_subscriptions as subs,
+        aws_cloudwatch as cw,
+        aws_cloudwatch_actions as cw_actions,
+        CfnParameter,
+    )
+    from constructs import Construct
+    import json
+
+    class UptimeCheckerStack(Stack):
+
+        def __init__(self, scope: Construct, construct_id: str, **kwargs) -&gt; None:
+            super().__init__(scope, construct_id, **kwargs)
+
+            # sns topic + email subscription
+            alert_email = CfnParameter(self, "AlertEmail", type="String", description="email for SNS alerts")
+            topic = sns.Topic(self, "UptimeAlertsTopic")
+            topic.add_subscription(subs.EmailSubscription(alert_email.value_as_string))
+
+            websites = [
+                {"name": "Portfolio", "url": "https://portfolio-4wj.pages.dev/"},
+                {"name": "TrustScience", "url": "https://trustscience.com"}
+            ]
+
+            check_fn = _lambda.Function(
+                self, "CheckFn",
+                runtime=_lambda.Runtime.PYTHON_3_10,
+                handler="lambda_function.lambda_handler",
+                code=_lambda.Code.from_asset("lambda"),
+                environment={
+                    "WEBSITES_JSON": json.dumps(websites)
+                },
+                timeout=Duration.seconds(10),
+                log_retention=logs.RetentionDays.ONE_DAY,
+            )
+
+            events.Rule(
+                self, "5MinRule",
+                schedule=events.Schedule.rate(Duration.minutes(5)),
+                targets=[targets.LambdaFunction(check_fn)]
+            )
+
+            # CloudWatch alarm: trigger if errors &gt;= 1 in 5min window
+            error_metric = check_fn.metric_errors(
+                period=Duration.minutes(5),
+                statistic="Sum"
+            )
+
+            alarm=cw.Alarm(self, "LambdaErrorAlarm",
+                    metric=error_metric,
+                    threshold=1,
+                    evaluation_periods=1,
+                    datapoints_to_alarm=1,
+                    treat_missing_data=cw.TreatMissingData.NOT_BREACHING,
+                    alarm_description="Uptime Lambda error",
+                    )
+            alarm_action = cw_actions.SnsAction(topic)
+            alarm.add_alarm_action(alarm_action)
+    </code></pre>
+
+    <h3>Step 2: Deploy With Email Parameter</h3>
+    <p>Deploy your stack and specify your email address to receive alerts:</p>
+    <pre><code class="language-bash">cdk deploy --parameters AlertEmail=&lt;your-email@example.com&gt;
+    </code></pre>
+
+    <p><strong>Note:</strong> You’ll receive a confirmation email from AWS SNS. You must click the confirmation link to activate alerts.</p>
+
+    <h4>Security Notes</h4>
+    <ul>
+        <li>Your email is never hardcoded in the source code; instead, it is passed securely at deploy time and not stored in version control</li>
+        <li>For shared or team environments, consider using AWS SSM Parameters Store instead</li>
+    </ul>
+
+    <h2>Test Uptime Checker:</h2>
+    <ul>
+        <li>Verify Lambda execution by checking CloudWatch Logs for the <code>UptimeCheckFn</code> log group. Review recent log entries to see uptime check results with timestamps.</li>
+        <li>Simulate a failure (e.g., invalid URL) and verify you receive an email alert triggered by the CloudWatch alarm.</li>
+    </ul>
+
+    <h2>Next Steps:</h2>
+    <p>This project is a great base to build upon. Here are some optional next steps:</p>
+    <ul>
+        <li>Add persistent storage (e.g., DynamoDB or S3) for historical uptime data</li>
+        <li>Create HTML reports or dashboards</li>
+        <li>Integrate alerts with Slack or other channels using AWS Chatbot</li>
+        <li>Automate deployments with CI/CD pipelines (e.g., GitHub Actions)</li>
+        <li>Add custom CloudWatch metrics for response times</li>
+    </ul>
+
+    <p><em>Happy Monitoring!</em></p>
+</div>
+</section>
+</div>
+</body>
+</html>
