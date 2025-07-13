@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Log Analysis: Tracing Suspicious Internal Behaviour</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+      <link rel="stylesheet" href="../assets/css/main.css" />
+      <noscript><link rel="stylesheet" href="../assets/css/noscript.css" /></noscript>
+  </head>
+<body class="is-preload">
+
+  <!-- Header -->
+  <header id="header">
+    <a href="../index.html" class="title">Elisha Hayer</a>
+    <nav>
+      <ul>
+        <li><a href="../index.html">Home</a></li>
+         <li><a href="log-analysis-forage-deloitte-au.html" class="active">Log Analysis: Tracing Suspicious Internal Behaviour</a> </li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle">More</a>
+            <ul class="dropdown-menu">
+                <li><a href="aws-cdk-lambda-s3-demo.html">Deploying AWS Lambda and S3 with CDK (Python)</a></li>
+                <li><a href="aws-lambda-uptime-monitor.html">AWS CDK Lambda Uptime Monitoring</a></li>
+            </ul>
+          </li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Wrapper -->
+  <div id="wrapper">
+
+    <!-- Main -->
+    <section id="main" class="wrapper">
+      <div class="inner">
+        <h1 class="major">Log Analysis: Tracing Suspicious Internal Behaviour</h1>
+
+        <h2>Introduction</h1>
+        <p>As part of Deloitte Australia’s Cybersecurity Virtual Experience Program on Forage, I investigated a suspected breach affecting a manufacturing client, Daikibo Industrials. The breach appeared to involve unauthorized access to an internal status board, with concerns that sensitive data may have been leaked. My objective was twofold: first, to determine whether the incident could have originated from the public internet without VPN access; and second, to identify any suspicious patterns in the company’s internal web activity logs. In the process, I strengthened my ability to read structured logs, trace user behavior, and distinguish normal usage from automated threats.</p>
+        <p><a href="#">Download <code>web_requests.log</code> to follow along</a></p>
+      
+        <h2>Step-by-Step: Investigative Approach and Key Considerations</h2>
+      
+        <h3><b>Step 1: Understand the Architecture and Constraints</b></h3>
+        <p>Before jumping into the logs, I clarified key assumptions based on the scenario and infrastructure:</p>
+        <ul>
+          <li>The telemetry dashboard is hosted on Daikibo’s intranet, which implies that access requires either being on the internal network or connected via VPN.</li>
+          <li>The <code>web_requests.log</code> file only contains requests from internal, static IP addresses.</li>
+        </ul>
+        <p>This ruled out direct external access (i.e., from the public internet) because attackers would need to breach the VPN or have an internal foothold.</p>
+      
+        <h4>Verifying Internal IPs</h4>
+        <p>To confirm that the IP addresses in the logs were internal, I cross-checked them against private IP address ranges defined by RFC 1918:</p>
+        <ul>
+          <li>10.0.0.0 – 10.255.255.255 (10/8 prefix)</li>
+          <li>172.16.0.0 – 172.31.255.255 (172.16/12 prefix)</li>
+          <li>192.168.0.0 – 192.168.255.255 (192.168/16 prefix)</li>
+        </ul>
+        <p>The log entries all used IPs in the 192.168.x.y range, confirming that the traffic originated entirely from within a private network. No public or hybrid IPs were present.</p>
+      
+        <h4>Implication: External Breach Without VPN Is Unlikely</h4>
+        <p>An attacker would need to:</p>
+        <ul>
+          <li>Compromise valid VPN credentials, and successfully connect through Daikibo's VPN infrastructure</li>
+          <li>Gain control of a device already inside the internal network (e.g., through malware, phishing, or physical access)</li>
+        </ul>
+        <p>Simply having stolen user credentials would not be sufficient unless the attacker could also access the VPN or internal network. This emphasizes the importance of layered security: network segmentation, access controls, and VPN authentication are all essential barriers.</p>
+      
+        <h4>Could a Brute-Force Attack Succeed?</h4>
+        <ul>
+          <li>The scenario doesn’t provide enough information to fully assess the system’s protections against brute-force attempts, but such an attack appears unlikely given the context:</li>
+          <li>There’s no indication that authentication services are exposed to the public internet.</li>
+          <li>If login functionality is behind the VPN or network firewall, brute-force attempts from the outside are not feasible.</li>
+          <li>Additionally, many enterprise-grade systems employ brute-force mitigation techniques such as account lockouts, captchas, rate-limiting, and MFA.</li>
+        </ul>
+      
+        <h3><b>Step 2: Inspect IP Behavior and Request Patterns</b></h3>
+        <p><strong>Note:</strong> In real-world environments, web logs are rarely this clean. Production logs are often noisy, inconsistent, and include additional metadata (e.g., user-agent strings, headers, timestamps in different formats). They usually require parsing tools or log management platforms for effective analysis. This exercise simplifies the format for learning purposes.</p>
+      
+        <p>Next, I reviewed the web_requests.log to assess behavior patterns. Specifically, I wanted to determine:</p>
+        <ul>
+          <li>Was the login sequence normal? (GET /login → assets → POST /login)</li>
+          <li>Was dashboard activity followed by expected resource requests? (.css, .js, images)</li>
+          <li>Were API requests being made manually or programmatically? Or in other words, does the request sequence match expected human behavior?</li>
+        </ul>
+      
+        <h4>Normal Activity Example</h4>
+        <p>This request pattern aligns with a legitimate, human-driven session. It was limited in time, used expected endpoints in the correct order, and showed no signs of automation or abuse.</p>
+        <span class="image fit"><img src="../images/log-normal.png" alt="" /></span>
+        <p>You can see that the user had:</p>
+        <ul>
+          <li>Initial 401 when accessing – expected for an unauthenticated user session.
+          <li>Accesses login page assets (/login, /login.css, /login.js).
+          <li>Performs a POST /login; receives 200 OK.
+          <li>Begins authenticated session
+          <li>Accesses various factory/machine endpoints manually over a few minutes.
+          <li>Activity stops soon after initial interactions
+        </ul>
+        <p>Summary: This request pattern aligns with a legitimate, human-driven session (i.e., likely a user manually interacting via UI). It was limited in time, used expected endpoints in the correct order, and showed no signs of automation or abuse.</p>
+
+
+        <h4>Suspicious Example: 192.168.0.101</h4>
+        <p>This IP request block showed suspicious activity, consistent with that of a scripted client or bot.</p>
+        <span class="image fit"><img src="../images/log-suspicious.png" alt="" /></span>
+        <p><a href="#">Download the full log for details</a></p>
+        <ul>
+          <li>After authenticating, began polling the /api/factory/machine/status endpoint once per hour, precisely at HH:00:48.000Z.</li>
+          <li>Used wildcard query parameters (e.g., factory=*) to request data from all factories.</li>
+          <li>Continued sending API requests even after receiving repeated 401 Unauthorized responses.</li>
+          <li>Showed no evidence of reloading dashboard assets, indicating API access via HTTP clients (curl, wget, cron).</li>
+        </ul>
+      
+        <h4>Red Flags:</h4>
+        <ul>
+          <li>Automated polling behavior – consistent hourly timestamps.</li>
+          <li>Unauthorized access attempts continuing after failure.</li>
+          <li>Wildcard usage in parameters.</li>
+          <li>No frontend asset loading, suggesting backend scraping or automation.</li>
+        </ul>
+      
+        <h3><b>Step 3: Identify Access Risk / Conclusion</b></h3>
+        <ul>
+          <li>No evidence of a direct external attack occurred.</li>
+          <li>No VPN bypass or brute-force login attempts were visible.</li>
+          <li>Suspicious activity from 192.168.0.101 suggested use of automated tools or scripts.</li>
+          <li>User ID involved in the suspicious activity: <code>mdB7yD2dp1BFZPontHBQ1Z</code>.</li>
+        </ul>
+      
+        <h2>Security Takeaways</h2>
+        <ul>
+          <li>Pattern-based detection is essential. Human vs. automated behavior can be teased out through request timelines and structure.</li>
+          <li>APIs must be hardened: invalidate expired tokens, enforce rate limits, monitor anomalies.</li>
+          <li>Manual inspection adds context; automation scales detection.</li>
+          <li>Audit trails matter: logs reconstruct the who, what, when, and how.</li>
+          <li>Strong observability underpins effective incident response.</li>
+        </ul>
+      
+        <h3>Broader Implications: Why This Matters in Real Environments</h3>
+        <ul>
+          <li>Most breaches begin inside the network, via credential misuse or internal vulnerabilities.</li>
+          <li>Misconfigured internal tools or over-permissive automation can be silently exploited.</li>
+          <li>Automation is not abuse, but patterns reveal intent.</li>
+          <li>Lingering sessions or poorly handled tokens are frequent attack vectors.</li>
+        </ul>
+      
+        <h3>Security Architecture Principles Highlighted</h3>
+        <ul>
+          <li><strong>Defense-in-depth:</strong> Multiple layers (VPNs, firewalls, token expiry) mitigate damage.</li>
+          <li><strong>Zero Trust:</strong> Internal =/= safe. Enforce authentication and anomaly detection at all layers.</li>
+          <li><strong>Secure-by-default:</strong> Don’t expose internal tools unnecessarily. Always require strong auth.</li>
+          <li><strong>Network monitoring:</strong> Static IPs and segmentation make it easier to spot anomalies.</li>
+        </ul>
+      
+        <p><strong>For further reading:</strong></p>
+        <ul>
+          <li><a href="https://owasp.org/API-Security">OWASP API Security Top 10</a></li>
+          <li><a href="https://attack.mitre.org">MITRE ATT&CK Framework</a></li>
+        </ul>
+</div>
+</section>
+</div>
+</body>
+</html>

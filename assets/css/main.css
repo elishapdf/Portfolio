@@ -1,11 +1,5 @@
 @import url(fontawesome-all.min.css);
 
-/*
-	Hyperspace by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-*/
-
 html, body, div, span, applet, object,
 iframe, h1, h2, h3, h4, h5, h6, p, blockquote,
 pre, a, abbr, acronym, address, big, cite,
@@ -175,7 +169,7 @@ input, select, textarea {
 	}
 
 	p + ul {
-		margin-top: -1.5em;
+		margin-top: -1.em;
 	}
 
 	h1, h2, h3, h4, h5, h6 {
@@ -2529,7 +2523,7 @@ input, select, textarea {
 			display: block;
 			background: #ffffff;
 			border-radius: 100%;
-			color: #312450;
+			color: rgb(49, 36, 80);
 			text-align: center;
 			line-height: 2.5em;
 			margin: 0 0 1.3em 0;
@@ -3244,15 +3238,15 @@ input, select, textarea {
 		}
 
 		.wrapper.style1 {
-			background-color: #5e42a6;
+			background-color: rgb(94, 66, 166);
 		}
 
 		.wrapper.style1-alt {
-			background-color: #493382;
+			background-color: rgb(73, 51, 130);
 		}
 
 		.wrapper.style2 {
-			background-color: #5052b5;
+			background-color: rgb(80, 82, 181);
 		}
 
 		.wrapper.style2-alt {
@@ -3264,7 +3258,7 @@ input, select, textarea {
 		}
 
 		.wrapper.style3-alt {
-			background-color: #953d75;
+			background-color: rgb(255, 255, 252);
 		}
 
 		.wrapper.fullscreen {
@@ -3374,7 +3368,7 @@ input, select, textarea {
 		display: -webkit-flex;
 		display: -ms-flex;
 		display: flex;
-		background-color: #5e42a6;
+		background-color: rgb(80, 82, 181);
 		cursor: default;
 		padding: 1.75em 2em;
 	}
@@ -3428,6 +3422,68 @@ input, select, textarea {
 						#header > nav > ul > li a.active {
 							color: #ffffff;
 						}
+
+	/* Dropdown Styles */
+
+		#header > nav > ul > li.dropdown {
+			position: relative;
+		}
+		
+		#header > nav > ul > li.dropdown:hover .dropdown-menu {
+			display: block;
+		}
+		
+		#header > nav > ul > li.dropdown > a::after {
+			content: "❮";
+			color: rgba(255, 255, 255, 0.35);
+			display: inline-block;
+			transform: rotate(-90deg);
+			font-weight: bold;
+			font-size: 1em;
+			margin-left: 0.25em;
+			
+		}
+		
+		#header > nav > ul > li.dropdown:hover > a::after {
+			color: rgba(255, 255, 255, 0.55);
+		}
+		
+		#header > nav > ul > li .dropdown-menu {
+			display: none;
+			position: absolute;
+			top: 100%;
+			right: 0;
+			background-color: rgb(80, 82, 181); /* same as header background */
+			padding: 0.5em 0;
+			width: 20vw;
+			min-width: 160px;
+			max-width: 300px;
+			z-index: 1000;
+			text-align: left;
+		}
+		
+		#header > nav > ul > li .dropdown-menu li {
+			display: block;
+			margin: 0;
+		}
+		
+		#header > nav > ul > li .dropdown-menu li a {
+			display: block;
+			padding: 0.75em 1em;
+			font-size: 0.6em;
+			font-weight: bold;
+			letter-spacing: 0.25em;
+			text-transform: uppercase;
+			color: rgba(255, 255, 255, 0.35);
+			text-decoration: none;
+			background-color: rgb(80, 82, 181);
+		}
+		
+		#header > nav > ul > li .dropdown-menu li a:hover {
+			color: rgba(255, 255, 255, 0.55);
+			background-color: rgba(255, 255, 255, 0.1);
+		}
+
 
 		@media screen and (max-width: 736px) {
 
